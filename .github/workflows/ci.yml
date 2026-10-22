@@ -1,4 +1,4 @@
-name: Python application
+name: Lint and test app
 
 on:
   push:
@@ -11,31 +11,28 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: backend
+    runs-on: ubuntu-26.04
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
 
     - name: Set up Python Environment
-      uses: actions/setup-python@v3
-      with:
-        python-version: "3.13"
-
-    - name: Install dependencies
       run: |
+        sudo apt update -y
+        sudo apt install -y python3.14-venv
+        python3.14 -m venv venv
+        source venv/bin/activate
         python -m pip install --upgrade pip
-        pip install flake8 pytest httpx2
-        pip install -r requirements.txt
+
+    - name: Install requirements
+      if: hashFiles('backend/requirements.txt') != ''
+      run: |
+        ./venv/bin/pip install -r backend/requirements.txt
+        ./venv/bin/pip install flake8 pytest httpx2
 
     - name: Lint with flake8
-      run: |
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+      run: ./venv/bin/flake8 backend
 
     - name: Test with pytest
-      run: |
-        pytest
+      run: ./venv/bin/pytest -v backend
