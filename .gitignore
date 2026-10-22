@@ -1,5 +1,5 @@
+frontend/
 *.db
 *.log
 __pycache__/
 *.pyc
-frontend/node_modules/
