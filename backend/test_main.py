@@ -1,4 +1,7 @@
 from main import app
+from fastapi.testclient import TestClient
+
+client = TestClient(app)
 
 
 def test_app_exists():
@@ -7,4 +10,3 @@ def test_app_exists():
 def test_read_items():
     response = client.get("/items")
     assert response.status_code == 200
-    
