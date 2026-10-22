@@ -1,11 +1,19 @@
 from fastapi import FastAPI, Depends, HTTPException
-from sqlalchemy.orm import Session
-import models, schemas, logging
-from database import SessionLocal, engine
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
 
-logging.basicConfig(filename='server.log', encoding='utf-8', level=logging.DEBUG)
+import logging
+import models
+import schemas
 
+from database import SessionLocal, engine
+
+
+logging.basicConfig(
+    filename="server.log",
+    encoding="utf-8",
+    level=logging.DEBUG
+)
 
 
 # Create all tables in the database
@@ -23,6 +31,7 @@ app.add_middleware(
     allow_headers=["*"],  # Allow all headers
 )
 
+
 # Dependency to get database session
 def get_db():
     db = SessionLocal()
@@ -31,9 +40,13 @@ def get_db():
     finally:
         db.close()
 
+
 # CREATE - Add a new item
 @app.post("/items/", response_model=schemas.Item)
-def create_item(item: schemas.ItemCreate, db: Session = Depends(get_db)):
+def create_item(
+    item: schemas.ItemCreate,
+    db: Session = Depends(get_db)
+):
     logging.info("CREATE : %s ", item)
     db_item = models.Item(**item.dict())
     db.add(db_item)
@@ -41,26 +54,53 @@ def create_item(item: schemas.ItemCreate, db: Session = Depends(get_db)):
     db.refresh(db_item)
     return db_item
 
+
 # READ - Get all items
 @app.get("/items/", response_model=list[schemas.Item])
-def read_items(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def read_items(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db)
+):
     items = db.query(models.Item).offset(skip).limit(limit).all()
     return items
 
+
 # READ - Get a single item by ID
 @app.get("/items/{item_id}", response_model=schemas.Item)
-def read_item(item_id: int, db: Session = Depends(get_db)):
-    item = db.query(models.Item).filter(models.Item.id == item_id).first()
+def read_item(
+    item_id: int,
+    db: Session = Depends(get_db)
+):
+    item = db.query(models.Item).filter(
+        models.Item.id == item_id
+    ).first()
+
     if item is None:
-        raise HTTPException(status_code=404, detail="Item not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Item not found"
+        )
+
     return item
+
 
 # UPDATE - Update an existing item
 @app.put("/items/{item_id}", response_model=schemas.Item)
-def update_item(item_id: int, item: schemas.ItemCreate, db: Session = Depends(get_db)):
-    db_item = db.query(models.Item).filter(models.Item.id == item_id).first()
+def update_item(
+    item_id: int,
+    item: schemas.ItemCreate,
+    db: Session = Depends(get_db)
+):
+    db_item = db.query(models.Item).filter(
+        models.Item.id == item_id
+    ).first()
+
     if db_item is None:
-        raise HTTPException(status_code=404, detail="Item not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Item not found"
+        )
 
     for field, value in item.dict().items():
         setattr(db_item, field, value)
@@ -69,13 +109,24 @@ def update_item(item_id: int, item: schemas.ItemCreate, db: Session = Depends(ge
     db.refresh(db_item)
     return db_item
 
+
 # DELETE - Remove an item
 @app.delete("/items/{item_id}")
-def delete_item(item_id: int, db: Session = Depends(get_db)):
-    item = db.query(models.Item).filter(models.Item.id == item_id).first()
+def delete_item(
+    item_id: int,
+    db: Session = Depends(get_db)
+):
+    item = db.query(models.Item).filter(
+        models.Item.id == item_id
+    ).first()
+
     if item is None:
-        raise HTTPException(status_code=404, detail="Item not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Item not found"
+        )
 
     db.delete(item)
     db.commit()
+
     return {"message": "Item deleted successfully"}
