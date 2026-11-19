@@ -1,4 +1,5 @@
 import csv
+from decimal import Decimal
 
 from database import SessionLocal
 from models import Item
@@ -12,7 +13,8 @@ with open("MOCK_DATA.csv", newline="", encoding="utf-8") as file:
     for row in reader:
         item = Item(
             name=row["name"],
-            description=row["description"]
+            description=row["description"],
+            price=Decimal(row["price"])
         )
 
         db.add(item)
